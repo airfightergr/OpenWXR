@@ -13,7 +13,7 @@
  * CDDL HEADER END
  */
 /*
- * Copyright 2018 Saso Kiselkov. All rights reserved.
+ * Copyright 2022 Saso Kiselkov. All rights reserved.
  */
 
 #include <errno.h>
@@ -50,16 +50,14 @@
 char			xpdir[512];
 char			plugindir[512];
 
-int			xp_ver, xplm_ver;
+static int		xp_ver, xplm_ver;
 XPLMHostApplicationID	host_id;
 static atmo_t		*atmo = NULL;
 
 static openwxr_intf_t openwxr_intf = {
 	.init = wxr_init,
 	.fini = wxr_fini,
-	.set_conf = wxr_set_conf,
 	.set_acf_pos = wxr_set_acf_pos,
-	.get_acf_pos = wxr_get_acf_pos,
 	.set_scale = wxr_set_scale,
 	.get_scale = wxr_get_scale,
 	.set_azimuth_limits = wxr_set_azimuth_limits,
@@ -81,9 +79,7 @@ static openwxr_intf_t openwxr_intf = {
 	.set_colors = wxr_set_colors,
 	.get_brightness = wxr_get_brightness,
 	.set_brightness = wxr_set_brightness,
-	.reload_gl_progs = wxr_reload_gl_progs,
-	.set_alert = wxr_set_alert,
-	.get_alert = wxr_get_alert
+	.reload_gl_progs = wxr_reload_gl_progs
 };
 
 static conf_t *
@@ -274,6 +270,12 @@ const char *
 get_plugindir(void)
 {
 	return (plugindir);
+}
+
+int
+get_xpver(void)
+{
+	return (xp_ver);
 }
 
 #if	IBM
