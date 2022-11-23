@@ -149,12 +149,12 @@ static struct {
 	dr_t	wind_turb[3];		/* ratio 0..10 */
 	dr_t	shear_dir[3];		/* degrees relative */
 	dr_t	shear_spd[3];		/* knots */
-	dr_t	turb;			/* ratio 0..1 */
 	dr_t	render_type;
 
 	dr_t	temp_sl;
-	dr_t	temp_tropo;
-	dr_t	alt_tropo;
+	/* These datarefs have been deprecated in XP12 */
+	dr_t	temp_tropo_c;
+	dr_t	alt_tropo_m;
 
 	struct {
 		dr_t	instr_brt;
@@ -421,7 +421,16 @@ update_precip(void)
 	double cloud_z[2] = { 0, 0 };
 	double tmp_0_alt, tmp_minus_20_alt;
 	enum { CLOUD_TOP_MARGIN = 50, RAIN_EVAP_MARGIN = 5000 };
+	double temp_tropo_c, alt_tropo_m;
 
+	if (get_xpver() < 12000) {
+		temp_tropo_c = dr_getf_prot(&drs.temp_tropo_c);
+		alt_tropo_m = dr_getf_prot(&drs.alt_tropo_m);
+	} else {
+		temp_tropo_c = ISA_SL_TEMP_C - ISA_TLR_PER_1M *
+		    FEET2MET(ISA_TP_ALT);
+		alt_tropo_m = FEET2MET(ISA_TP_ALT);
+	}
 	/*
 	 * To compute the location of the freezing level, we use the
 	 * sea-level temperature and tropopause temperature & altitude
@@ -429,9 +438,9 @@ update_precip(void)
 	 * how temperature decreases with altitude.
 	 */
 	tmp_0_alt = fx_lin(0, dr_getf(&drs.temp_sl), 0,
-	    dr_getf(&drs.temp_tropo), dr_getf(&drs.alt_tropo));
+	    temp_tropo_c, alt_tropo_m);
 	tmp_minus_20_alt = fx_lin(-20.0, dr_getf(&drs.temp_sl), 0,
-	    dr_getf(&drs.temp_tropo), dr_getf(&drs.alt_tropo));
+	    temp_tropo_c, alt_tropo_m);
 
 	/*
 	 * If the temperature is inverted, force the algorithm below to at
@@ -713,7 +722,6 @@ atmo_xp11_init(void)
 		fdr_find(&drs.shear_spd[i],
 		    "sim/weather/shear_speed_kt[%d]", i);
 	}
-	fdr_find(&drs.turb, "sim/weather/wind_turbulence_percent");
 
 	fdr_find(&drs.EFIS.instr_brt,
 	    "sim/cockpit2/switches/instrument_brightness_ratio");
@@ -735,9 +743,11 @@ atmo_xp11_init(void)
 	fdr_find(&drs.render_type, "sim/graphics/view/panel_render_type");
 
 	fdr_find(&drs.temp_sl, "sim/weather/temperature_sealevel_c");
-	fdr_find(&drs.temp_tropo, "sim/weather/temperature_tropo_c");
-	fdr_find(&drs.alt_tropo, "sim/weather/tropo_alt_mtr");
-
+	if (get_xpver() < 12000) {
+		/* These datarefs have been deprecated in XP12 */
+		fdr_find(&drs.temp_tropo_c, "sim/weather/temperature_tropo_c");
+		fdr_find(&drs.alt_tropo_m, "sim/weather/tropo_alt_mtr");
+	}
 	for (int i = 0; i < 4; i++)
 		xp11_atmo.precip_nodes[i] = VECT2(i, 0);
 	xp11_atmo.precip_nodes[4] = NULL_VECT2;
