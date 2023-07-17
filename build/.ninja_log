@@ -1,0 +1,11 @@
+# ninja log v5
+1071	1472	1689587884663924447	../bin/lin.xpl	df526546741d0daa
+2	1071	1689587884267940256	src/CMakeFiles/openwxr.dir/standalone.c.o	7493caf5df0dec83
+1	748	1689587883943953197	src/CMakeFiles/openwxr.dir/atmo_xp11.c.o	6617779b7d0d271d
+465	525	1689548117173864157	src/lin.xpl	e0d054a2c4c1f7e0
+11	987	1689587884179943769	src/CMakeFiles/openwxr.dir/wxr.c.o	562332769ff3ecf8
+0	79	1689590834678439459	build.ninja	5e76a0cb593e3ba1
+2	399	1689587883591967278	src/CMakeFiles/openwxr.dir/xplane.c.o	e70d7292b16e4685
+2	301	1689587883491971279	src/CMakeFiles/openwxr.dir/fontmgr.c.o	2ebb2676d6024c06
+1	217	1689587883411974479	src/CMakeFiles/openwxr.dir/dbg_log.c.o	69d85e1746d9eb95
+0	6	0	clean	a31eedcededa8236

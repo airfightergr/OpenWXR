@@ -1,0 +1,16 @@
+/home/todir/Downloads/OpenWXR/src/prototypes/prototype.c
+/home/todir/Downloads/OpenWXR/src/standalone.h
+/home/todir/Downloads/OpenWXR/src/atmo.h
+/home/todir/Downloads/OpenWXR/src/standalone.c
+/home/todir/Downloads/OpenWXR/src/wxr.h
+/home/todir/Downloads/OpenWXR/src/xplane.c
+/home/todir/Downloads/OpenWXR/src/prototypes/prototype.h
+/home/todir/Downloads/OpenWXR/src/atmo_xp11.c
+/home/todir/Downloads/OpenWXR/src/xplane.h
+/home/todir/Downloads/OpenWXR/src/wxr.c
+/home/todir/Downloads/OpenWXR/src/dbg_log.h
+/home/todir/Downloads/OpenWXR/src/fontmgr.h
+/home/todir/Downloads/OpenWXR/src/dbg_log.c
+/home/todir/Downloads/OpenWXR/src/fontmgr.c
+/home/todir/Downloads/OpenWXR/src/glpriv.h
+/home/todir/Downloads/OpenWXR/src/atmo_xp11.h

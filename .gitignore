@@ -4,9 +4,15 @@ Makefile
 CMakeFiles
 bin
 .DS_Store
+.vscode
+OpenWXR.code-workspace
 qmake/object_script.win.xpl.Debug
 qmake/object_script.win.xpl.Release
 qmake/output/
 qmake/win.xpl_resource.rc
 OpenWXR.zip
 OpenWXR
+src/compile_commands.json
+src/src.mk
+src/src.workspace
+src/src.project
