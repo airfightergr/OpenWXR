@@ -5,6 +5,7 @@ CMakeFiles
 bin
 .DS_Store
 .vscode
+build
 OpenWXR.code-workspace
 qmake/object_script.win.xpl.Debug
 qmake/object_script.win.xpl.Release
