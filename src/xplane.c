@@ -57,7 +57,9 @@ static atmo_t		*atmo = NULL;
 static openwxr_intf_t openwxr_intf = {
 	.init = wxr_init,
 	.fini = wxr_fini,
+	.set_conf = wxr_set_conf,
 	.set_acf_pos = wxr_set_acf_pos,
+	.get_acf_pos = wxr_get_acf_pos,
 	.set_scale = wxr_set_scale,
 	.get_scale = wxr_get_scale,
 	.set_azimuth_limits = wxr_set_azimuth_limits,
@@ -79,6 +81,8 @@ static openwxr_intf_t openwxr_intf = {
 	.set_colors = wxr_set_colors,
 	.get_brightness = wxr_get_brightness,
 	.set_brightness = wxr_set_brightness,
+	.set_alert = wxr_set_alert,
+	.get_alert = wxr_get_alert,
 	.reload_gl_progs = wxr_reload_gl_progs
 };
 
