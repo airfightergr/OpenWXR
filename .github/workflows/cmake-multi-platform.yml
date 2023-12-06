@@ -88,5 +88,5 @@ jobs:
 
     - uses: actions/upload-artifact@v3
       with:
-        name: opemwxr
+        name: openwxr
         path: ${{github.workspace}}/Deploy
