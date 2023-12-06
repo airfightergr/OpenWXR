@@ -98,7 +98,7 @@ jobs:
               sudo chmod +x glsl_cleanup.sh
               sed -i -e 's/\r$//' glsl_cleanup.sh 
               make
-              cp -r ../data/bin ../Deploy/openwxr/data/
+              cp -r ../data/bin ../Deploy/openwxr/data/bin
               cp -r ../fonts ../Deploy/openwxr 
 
     - uses: actions/upload-artifact@v3
