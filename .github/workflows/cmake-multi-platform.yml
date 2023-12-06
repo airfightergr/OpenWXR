@@ -22,43 +22,46 @@ jobs:
       matrix:
         os: [ubuntu-20.04, macos-12]
         build_type: [Debug]
-        system: [Linux, Windows, Darwin]
+        subsystem: [Linux, Windows, Darwin]
         include:
           - os: ubuntu-20.04
-            system : Linux
+            subsystem : Linux
             c_compiler: gcc
             cpp_compiler: g++
           - os: ubuntu-20.04
-            system : Windows
+            subsystem : Windows
             c_compiler: x86_64-w64-mingw32-gcc
             cpp_compiler: x86_64-w64-mingw32-g++
           - os: macos-12
-            system : Darwin
+            subsystem : Darwin
             c_compiler: clang
             cpp_compiler: clang++
         exclude:
           - os: ubuntu-20.04
-            system : Darwin
+            subsystem : Darwin
           - os: macos-12
-            system : Linux
+            subsystem : Linux
           - os: macos-12
-            system : Windows
+            subsystem : Windows
 
     steps:
     - uses: actions/checkout@v3
       with:
         submodules: recursive
-    - name:  Install
+    - name: Ubuntu Install OpenGL
+      if: runner.os == 'Linux'
       run:   |
-             if [ "$RUNNER_OS" == "Linux" ]; then
-                  sudo apt-get update
-                  sudo apt-get install --fix-missing libgl1-mesa-dev libglfw3-dev libglu1-mesa-dev
-                  if [${{ matrix.system }} == "Windows"]; then
-                    sudo apt-get install mingw-w64
-                  fi
-             fi
+              sudo apt-get update
+              sudo apt-get install --fix-missing libgl1-mesa-dev libglfw3-dev libglu1-mesa-dev
       shell: bash        
       
+    - name: Ubuntu Install Mingw
+      if: matrix.subsystem == 'Windows'
+      run:   |
+              sudo apt-get update
+              sudo apt-get install mingw-w64
+      shell: bash     
+
     - name: Set reusable strings
       # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
       id: strings
@@ -73,7 +76,7 @@ jobs:
       run: 
         cmake -B ${{ steps.strings.outputs.build-output-dir }}
         -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
-        -DCMAKE_SYSTEM_NAME=${{ matrix.system }}
+        -DCMAKE_SYSTEM_NAME=${{ matrix.subsystem }}
         -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
         -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"
