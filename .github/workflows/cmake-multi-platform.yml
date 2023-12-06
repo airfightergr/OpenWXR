@@ -6,7 +6,10 @@ on:
   workflow_dispatch
 
 jobs:
+
   build:
+    env:
+      working-directory: ./data
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -88,13 +91,14 @@ jobs:
 
     - name: Build shaders
       if: matrix.target_system == 'Linux'
+      working-directory: ${{env.working-directory}}
       shell: bash
       run:   |
               sudo apt-get install spirv-cross
-              sudo chmod +x ${{ github.workspace }}/data/glsl_cleanup.sh
-              .${{ github.workspace }}/data/glsl_cleanup.sh
-              cp -r ${{github.workspace}}/data ${{github.workspace}}/Deploy/openwxr
-              cp -r ${{github.workspace}}/fonts ${{github.workspace}}/Deploy/openwxr 
+              sudo chmod +x glsl_cleanup.sh
+              glsl_cleanup.sh
+              cp -r ../data ../Deploy/openwxr
+              cp -r ../fonts ../Deploy/openwxr 
 
     - uses: actions/upload-artifact@v3
       with:
