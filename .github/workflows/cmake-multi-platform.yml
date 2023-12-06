@@ -37,7 +37,7 @@ jobs:
             c_compiler: clang
             cpp_compiler: clang++
         exclude:
-          - os: ubuntu-latest
+          - os: ubuntu-20.04
             system : Darwin
           - os: macos-12
             system : Linux
@@ -52,7 +52,7 @@ jobs:
       run:   |
              if [ "$RUNNER_OS" == "Linux" ]; then
                   sudo apt-get update
-                  sudo apt-get install --fix-missing libgl1-mesa-dev binutils-mingw-w64-x86-64 gcc-mingw-w64-base
+                  sudo apt-get install --fix-missing libgl1-mesa-dev mingw-w64
              fi
       shell: bash        
       
