@@ -25,7 +25,7 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD 17)
 
 SET(SRC
     atmo_xp11.c
@@ -85,7 +85,7 @@ if(NOT DEFINED ${XPSDK})
 endif()
 
 if(NOT DEFINED ${LIBACFUTILS})
-	set(LIBACFUTILS "${CMAKE_SOURCE_DIR}/libraries/libacfutils_redist")
+	set(LIBACFUTILS "${CMAKE_SOURCE_DIR}/libraries/libacfutils-redist")
 endif()
 
 if(NOT DEFINED ${OPENAL})
@@ -279,7 +279,7 @@ endif()
 if(APPLE)
 	#set_target_properties(openwxr PROPERTIES LINK_FLAGS "-static-libstdc++")	
 else()
-	set_target_properties(openwxr PROPERTIES LINK_FLAGS "-static-libgcc -static-libstdc++ -Wl,--exclude-libs,ALL")
+	set_target_properties(openwxr PROPERTIES LINK_FLAGS "-static -static-libgcc -static-libstdc++ -Wl,--exclude-libs,ALL")
 	if(UNIX AND NOT APPLE)
 		set_target_properties(openwxr PROPERTIES LINK_FLAGS "-nodefaultlibs")
 	endif()
