@@ -96,6 +96,7 @@ jobs:
       run:   |
               sudo apt-get install spirv-cross glslang-tools
               sudo chmod +x glsl_cleanup.sh
+              sed -i -e 's/\r$//' glsl_cleanup.sh 
               make
               cp -r ../data/bin ../Deploy/openwxr/data/
               cp -r ../fonts ../Deploy/openwxr 
