@@ -13,8 +13,19 @@
 
 # Copyright 2018 Saso Kiselkov. All rights reserved.
 
-cmake_minimum_required(VERSION 3.9)
+cmake_minimum_required(VERSION 3.12)
+
+if(APPLE)
+	set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "" FORCE)
+endif(APPLE)
 project(openwxr)
+
+if(NOT CMAKE_BUILD_TYPE)
+	SET(CMAKE_BUILD_TYPE "Debug")
+endif()
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_C_STANDARD 11)
 
 SET(SRC
     atmo_xp11.c
@@ -32,98 +43,117 @@ SET(HDR
     wxr.h
     xplane.h)
 
-SET(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELEASE} -DDEBUG -g")
-SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -DDEBUG -O0 -g")
-
 SET(ALL_SRC ${SRC} ${HDR})
 LIST(SORT ALL_SRC)
 
-if(APPLE)
-	add_executable(openwxr ${ALL_SRC})
+
+add_library(openwxr SHARED ${ALL_SRC})
+
+if(WIN32)
+	set(PLAT_SHORT "win64")
+	set(PLAT_LONG "win-64")
+	set(PLAT_ONLY "win")
+	set(PLUGIN_BIN_OUTDIR "win_x64")
+elseif(APPLE)
+	set(PLAT_SHORT "mac64")
+	set(PLAT_LONG "mac-64")
+	set(PLAT_ONLY "mac")
+	set(PLUGIN_BIN_OUTDIR "mac_x64")
 else()
-	add_library(openwxr SHARED ${ALL_SRC})
+	set(PLAT_SHORT "lin64")
+	set(PLAT_LONG "linux-64")
+	set(PLAT_ONLY "linux")
+	set(PLUGIN_BIN_OUTDIR "lin_x64")
 endif()
 
+set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELEASE} -DDEBUG")
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -DDEBUG")
+
+execute_process(COMMAND git rev-parse --short HEAD
+	OUTPUT_VARIABLE PLUGIN_VERSION WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+
+if(${PLUGIN_VERSION} STREQUAL "") 
+	set(PLUGIN_VERSION "LOCAL")
+else()
+	string(REGEX REPLACE "\n$" "" PLUGIN_VERSION "${PLUGIN_VERSION}")
+endif()
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DPLUGIN_VERSION=\"\"${PLUGIN_VERSION}\"\"")
+
+if(NOT DEFINED ${XPSDK})
+	set(XPSDK "${CMAKE_SOURCE_DIR}/libraries/SDK")
+endif()
+
+if(NOT DEFINED ${LIBACFUTILS})
+	set(LIBACFUTILS "${CMAKE_SOURCE_DIR}/libraries/libacfutils_redist")
+endif()
+
+if(NOT DEFINED ${OPENAL})
+	set(OPENAL "${CMAKE_SOURCE_DIR}/libraries/OpenAL")
+endif()
+
+if(NOT DEFINED ${OPENGPWS})
+	set(OPENGPWS "${CMAKE_SOURCE_DIR}/libraries/opengpws")
+endif()
+
+add_definitions(-DXPLM200=1 -DXPLM210=1 -DXPLM300=1 -DXPLM301=1 -DXPLM303=1 -DXPLM400=1 -DGLEW_BUILD=GLEW_STATIC)
+
 include_directories(openwxr PUBLIC
-    "${LIBACFUTILS}/src"
-    "${LIBACFUTILS}/glew/glew-1.13.0-linux-64/install/include"
-    "${LIBACFUTILS}/cglm/cglm-0.4.1/include"
+    "${LIBACFUTILS}/include"
+	"${LIBACFUTILS}/include/cglm"
+	"${XPSDK}/CHeaders/XPLM"
+	"${XPSDK}/CHeaders/Widgets"
+	"${OPENAL}/include"
     "../api"
     "${OPENGPWS}/api")
 
+if(WIN32)
+	include_directories(openwxr PUBLIC "${LIBACFUTILS}/mingw64/include")
+else()
+	include_directories(openwxr PUBLIC "${LIBACFUTILS}/${PLAT_SHORT}/include")
+endif()
+
 #compiler flags
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m64 -pipe -std=c11 -W -Wall -Wextra -Werror -fvisibility=hidden -Wno-unused-local-typedefs\
-	 -Wunused-result -Wno-missing-field-initializers")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -W -Wall -Wextra -Werror -fvisibility=hidden -Wno-unused-local-typedefs\
+	-Wunused-result -Wno-missing-field-initializers")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
-    -DCHECK_RESULT_USED=\"__attribute__ ((warn_unused_result))\"")
+	-DCHECK_RESULT_USED=\"__attribute__ ((warn_unused_result))\"")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64")
 
-if(${FAST_DEBUG})
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DFAST_DEBUG=${FAST_DEBUG}")
-endif()
-
-#libraries
-include_directories(openwxr PUBLIC
-    "${LIBACFUTILS}/SDK/CHeaders/XPLM"
-    "${LIBACFUTILS}/SDK/CHeaders/Widgets"
-    "${LIBACFUTILS}/SDK/CHeaders/Wrappers")
-
 if(APPLE)
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch x86_64 -Wno-deprecated")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DPCRE2_CODE_UNIT_WIDTH=8 -DLACF_GLEW_USE_NATIVE_TLS=0")
 endif()
 
-# Yes, we need to strip a trailing newline from command output. CMake is
-# "smart" like that...
-execute_process(COMMAND git rev-parse --short HEAD
-    OUTPUT_VARIABLE PLUGIN_VERSION)
-string(REGEX REPLACE "\n$" "" PLUGIN_VERSION "${PLUGIN_VERSION}")
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DPLUGIN_VERSION='\"${PLUGIN_VERSION}\"'")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DXPLM200=1 -DXPLM210=1 -DXPLM300=1 \
-    -DXPLM301=1 -DGLEW_BUILD=GLEW_STATIC")
 if(APPLE)
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DAPL=1 -DIBM=0 -DLIN=0")
+elseif(WIN32)
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DAPL=0 -DIBM=1 -DLIN=0 -D_WIN32_WINNT=0x0600")
 else()
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DAPL=0 -DIBM=0 -DLIN=1")
 endif()
 
-
-if(APPLE)
-	execute_process(COMMAND ${LIBACFUTILS}/pkg-config-deps mac-64 --cflags
-	    OUTPUT_VARIABLE DEP_CFLAGS)
-else()
-	execute_process(COMMAND ${LIBACFUTILS}/pkg-config-deps linux-64 --cflags
-	    OUTPUT_VARIABLE DEP_CFLAGS)
-endif()
-
-string(REGEX REPLACE "\n$" "" DEP_CFLAGS "${DEP_CFLAGS}")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${DEP_CFLAGS}")
+#libraries
 
 # linking
 # Careful: order matters in target_link_libraries. Dependencies must be
 # ordered as first symbol callers and then as symbol providers (i.e.
 # libpng16 depends on libz, so linking must be first: libpng, then libz).
-execute_process(COMMAND ${LIBACFUTILS}/pkg-config-deps linux-64 --libs
-OUTPUT_VARIABLE LIBACFUTILS_DEP_LDFLAGS)
-string(REGEX REPLACE "\n$" "" LIBACFUTILS_DEP_LDFLAGS "${LIBACFUTILS_DEP_LDFLAGS}")
+
+
+if(WIN32)
+	set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} "${LIBACFUTILS}/mingw64/lib")	
+else()
+	set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} "${LIBACFUTILS}/${PLAT_SHORT}/lib")	
+endif()
 
 link_libraries(m)
 if(APPLE)
-	set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH}
-	    ${LIBACFUTILS}/SDK/Libraries/Mac
-	    ${LIBACFUTILS}/qmake/mac64
-	    ${LIBACFUTILS}/opus/opusfile-mac-64/lib
-	    ${LIBACFUTILS}/opus/opus-mac-64/lib
-	    ${LIBACFUTILS}/opus/libogg-mac-64/install/lib
-	    ${LIBACFUTILS}/opus/libogg-mac-64/install/lib
-	    ${LIBACFUTILS}/freetype/freetype-mac-64/lib
-	    ${LIBACFUTILS}/cairo/pixman-mac-64/lib
-	    ${LIBACFUTILS}/cairo/cairo-mac-64/lib
-	    ${LIBACFUTILS}/libpng/libpng-mac-64/lib
-	    ${LIBACFUTILS}/zlib/zlib-mac-64/lib
-	    ${LIBACFUTILS}/lzma/qmake/mac-64)
+	set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} ${XPSDK}/Libraries/Mac)
+
 	FIND_LIBRARY(XPLM_LIBRARY XPLM)
 	FIND_LIBRARY(XPWIDGETS_LIBRARY XPWidgets)
+	FIND_LIBRARY(GLEW_LIBRARY GLEWmx)
 	FIND_LIBRARY(OPENGL_LIBRARY OpenGL)
 	FIND_LIBRARY(OPENAL_LIBRARY OpenAL)
 	FIND_LIBRARY(LIBACFUTILS_LIBRARY acfutils)
@@ -139,6 +169,7 @@ if(APPLE)
 	target_link_libraries(openwxr
 	    ${LIBACFUTILS_LIBRARY}
 	    ${OPENAL_LIBRARY}
+		${GLEW_LIBRARY}
 	    ${OPENGL_LIBRARY}
 	    ${XPLM_LIBRARY}
 	    ${XPWIDGETS_LIBRARY}
@@ -152,102 +183,101 @@ if(APPLE)
 	    ${LZMA_LIBRARY}
 	    ${ZLIB_LIBRARY}
 	    )
+elseif(WIN32)
+	find_package(OpenGL REQUIRED)
+	set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} ${XPSDK}/Libraries/Win)
+
+	FIND_LIBRARY(XPLM_LIBRARY XPLM_64)
+	FIND_LIBRARY(LIBACFUTILS_LIBRARY acfutils)
+	FIND_LIBRARY(OPUSFILE_LIBRARY opusfile)
+	FIND_LIBRARY(OPUS_LIBRARY opus)
+	FIND_LIBRARY(OGG_LIBRARY ogg)
+	FIND_LIBRARY(FREETYPE_LIBRARY freetype)
+	FIND_LIBRARY(PIXMAN_LIBRARY pixman-1)
+	FIND_LIBRARY(CAIRO_LIBRARY cairo)
+	FIND_LIBRARY(LIBPNG_LIBRARY png16)
+	FIND_LIBRARY(CRYPTO_LIBRARY crypto)
+	FIND_LIBRARY(SSL_LIBRARY ssl)	
+	FIND_LIBRARY(ZLIB_LIBRARY z)
+	FIND_LIBRARY(GLEW_LIBRARY glew32mx)
+	FIND_LIBRARY(LZMA_LIBRARY lzma)
+	FIND_LIBRARY(CURL_LIBRARY curl)
+	target_link_libraries(openwxr
+		${LIBACFUTILS_LIBRARY}
+		${XPLM_LIBRARY}
+		${OPUSFILE_LIBRARY}
+		${OPUS_LIBRARY}
+		${OGG_LIBRARY}
+		${CAIRO_LIBRARY}
+		${PIXMAN_LIBRARY}
+		${FREETYPE_LIBRARY}
+		${LIBPNG_LIBRARY}
+		${ZLIB_LIBRARY}
+		${GLEW_LIBRARY}
+		${LZMA_LIBRARY}
+		${CURL_LIBRARY}
+		${SSL_LIBRARY}
+		${CRYPTO_LIBRARY}
+		${OPENGL_LIBRARY}
+		-lpsapi
+		-ldbghelp
+		-lcrypt32 
+		-lws2_32 
+		-lwinmm
+		)
 else()
-#	set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH}
-#			${LIBACFUTILS}/qmake/lin64
-#			${LIBACFUTILS}/lzma/qmake/linux-64
-#			${LIBACFUTILS}/libiconv/libiconv-linux-64/lib
-#			${LIBACFUTILS}/freetype/freetype-linux-64/lib
-#			${LIBACFUTILS}/libpng/libpng-linux-64/lib
-#			${LIBACFUTILS}/zlib/zlib-linux-64//lib
-#			${LIBACFUTILS}/cairo/cairo-linux-64/lib
-#			${LIBACFUTILS}/cairo/pixman-linux-64/lib
-#			${LIBACFUTILS}/curl/libcurl-linux-64/lib
-#			${LIBACFUTILS}/shapelib/libproj-linux-64/lib
-#			${LIBACFUTILS}/shapelib/libshape-linux-64/lib
-#			${LIBACFUTILS}/ssl/openssl-linux-64/lib
-#			${LIBACFUTILS}/libxml2/libxml2-linux-64/lib
-#			${LIBACFUTILS}/opus/libogg-linux-64/install/lib
-#			${LIBACFUTILS}/opus/opusfile-linux-64/lib
-#			${LIBACFUTILS}/opus/opus-linux-64/lib/
-#			${LIBACFUTILS}/pcre2/pcre2-linux-64/lib
-#			${LIBACFUTILS}/geographiclib/geographiclib-linux-64/lib
-#			${LIBACFUTILS}/glew/glew-1.13.0-linux-64/install/lib64
-#			${LIBACFUTILS}/libclipboard/libclipboard-linux-64/install/lib)
-#	FIND_LIBRARY(LIBACFUTILS_LIBRARY acfutils
-#)
-#	FIND_LIBRARY(LZMA_LIBRARY lzma)
-#	FIND_LIBRARY(LIBICONV_LIBRARY iconv)
-#	FIND_LIBRARY(FREETYPE_LIBRARY freetype)
-#	FIND_LIBRARY(LIBPNG_LIBRARY png16)
-#	FIND_LIBRARY(ZLIB_LIBRARY z ${LIBACFUTILS}/zlib/zlib-linux-64/lib)
-#	FIND_LIBRARY(CAIRO_LIBRARY cairo)
-#	FIND_LIBRARY(PIXMAN_LIBRARY pixman-1)
-#	FIND_LIBRARY(CURL_LIBRARY curl)
-#	FIND_LIBRARY(PROJ_LIBRARY proj)
-#	FIND_LIBRARY(SHAPE_LIBRARY shp)
-#	FIND_LIBRARY(SSL_LIBRARY ssl)
-#	FIND_LIBRARY(CRYPTO_LIBRARY crypto)
-#	FIND_LIBRARY(LIBXML2_LIBRARY xml2)
-#	FIND_LIBRARY(PCRE2_LIBRARY pcre2-8)
-#	FIND_LIBRARY(GEOGRAPHIC_LIBRARY Geographic)
-#	FIND_LIBRARY(GLEW_LIBRARY GLEWmx)
-#	FIND_LIBRARY(GEOGRAPHIC_LIBRARY Geographic)
-#	FIND_LIBRARY(CLIPBOARD_LIBRARY clipboard)
-#	FIND_LIBRARY(OPUSFILE_LIBRARY opusfile)
-#	FIND_LIBRARY(OPUS_LIBRARY opus)
-#	FIND_LIBRARY(OGG_LIBRARY ogg)	
-#	FIND_LIBRARY(PTHREAD_NONSHARED pthread)
+	find_package(OpenGL REQUIRED)
+
+	FIND_LIBRARY(LIBACFUTILS_LIBRARY acfutils)
+	FIND_LIBRARY(OPUSFILE_LIBRARY opusfile)
+	FIND_LIBRARY(OPUS_LIBRARY opus)
+	FIND_LIBRARY(OGG_LIBRARY ogg)
+	FIND_LIBRARY(FREETYPE_LIBRARY freetype)
+	FIND_LIBRARY(PIXMAN_LIBRARY pixman-1)
+	FIND_LIBRARY(CAIRO_LIBRARY cairo)
+	FIND_LIBRARY(LIBPNG_LIBRARY png16)
+	FIND_LIBRARY(CRYPTO_LIBRARY crypto)
+	FIND_LIBRARY(SSL_LIBRARY ssl)	
+	FIND_LIBRARY(ZLIB_LIBRARY z)
+	FIND_LIBRARY(GLEW_LIBRARY GLEWmx)
+	FIND_LIBRARY(LZMA_LIBRARY lzma)
+	FIND_LIBRARY(CURL_LIBRARY curl)
+	FIND_LIBRARY(PTHREAD_NONSHARED pthread_nonshared)
 	FIND_LIBRARY(LIBC_NONSHARED c_nonshared)
 	target_link_libraries(openwxr
-		${LIBACFUTILS_DEP_LDFLAGS}
-#	    ${LIBACFUTILS_LIBRARY}
-#		${LZMA_LIBRARY}
-#		${LIBICONV_LIBRARY}
-#		${FREETYPE_LIBRARY}
-#		${LIBPNG_LIBRARY}
-#	    # Need to forcibly shove this down cmake's throat
-#	    "${LIBACFUTILS}/zlib/zlib-linux-64/lib/libz.a"
-#	    ${CAIRO_LIBRARY}
-#	    ${PIXMAN_LIBRARY}
-##		${CURL_LIBRARY}
-#		${PROJ_LIBRARY}
-#		${SHAPE_LIBRARY}
-#		${SSL_LIBRARY}
-#		${CRYPTO_LIBRARY}
-#		${LIBXML2_LIBRARY}
-#		${PCRE2_LIBRARY}
-#		${GEOGRAPHIC_LIBRARY}
-#		${GLEW_LIBRARY}
-#		"${LIBACFUTILS}/glew/glew-1.13.0-linux-64/install/lib64/libGLEWmx.a"
-#		${CLIPBOARD_LIBRARY}
-#	    ${OPUSFILE_LIBRARY}
-#	    ${OPUS_LIBRARY}
-#	    ${OGG_LIBRARY}
-#	    ${PTHREAD_NONSHARED}
-	    ${LIBC_NONSHARED}
-	    )
+		${LIBACFUTILS_LIBRARY}
+		${OPENGL_LIBRARY}
+		${OPUSFILE_LIBRARY}
+		${OPUS_LIBRARY}
+		${OGG_LIBRARY}
+		${CAIRO_LIBRARY}
+		${PIXMAN_LIBRARY}
+		${FREETYPE_LIBRARY}
+		${LIBPNG_LIBRARY}
+		${ZLIB_LIBRARY}
+		${GLEW_LIBRARY}
+		${LZMA_LIBRARY}
+		${CURL_LIBRARY}
+		${SSL_LIBRARY}
+		${CRYPTO_LIBRARY}
+		${PTHREAD_NONSHARED}
+		${LIBC_NONSHARED}
+		)
 endif()
 
-SET_TARGET_PROPERTIES(openwxr PROPERTIES PREFIX "")
-SET_TARGET_PROPERTIES(openwxr PROPERTIES SUFFIX "")
+if(APPLE)
+	set_target_properties(openwxr PROPERTIES LINK_FLAGS "-static-libstdc++")	
+else()
+	set_target_properties(openwxr PROPERTIES LINK_FLAGS "-static-libgcc -static-libstdc++ -Wl,--exclude-libs,ALL")
+	if(UNIX AND NOT APPLE)
+		set_target_properties(openwxr PROPERTIES LINK_FLAGS "-nodefaultlibs")
+	endif()
+endif()
 
-
-	set(OUTPUT_FILENAME "lin.xpl")
-	#execute_process(COMMAND ${LIBACFUTILS}/pkg-config-deps linux-64 --libs
-	#    OUTPUT_VARIABLE LIBACFUTILS_DEP_LDFLAGS)
-	#	string(REGEX REPLACE "-L" "" LIBACFUTILS_DEP_LDFLAGS "${LIBACFUTILS_DEP_LDFLAGS}")
-	#	string(REGEX REPLACE "${LIBACFUTILS}" ""${LIBACFUTILS}"" LIBACFUTILS_DEP_LDFLAGS "${LIBACFUTILS_DEP_LDFLAGS}")
-	#	message(${LIBACFUTILS_DEP_LDFLAGS})
-	#set(CMAKE_SHARED_LINKER_FLAGS ${CMAKE_SHARED_LINKER_FLAGS} ${LIBACFUTILS_DEP_LDFLAGS})
-	#SET_TARGET_PROPERTIES(openwxr PROPERTIES LINK_FLAGS ${CMAKE_SHARED_LINKER_FLAGS} )
-	SET_TARGET_PROPERTIES(openwxr PROPERTIES LINK_FLAGS
-	    "${CMAKE_SHARED_LINKER_FLAGS} -rdynamic -nodefaultlibs \
-	    -undefined_warnsing -fPIC -fvisibility=hidden\
-		${LIBACFUTILS}/zlib/zlib-linux-64/lib/libz.a")
-
-set_target_properties(openwxr PROPERTIES RUNTIME_OUTPUT_DIRECTORY
-    "${CMAKE_SOURCE_DIR}/bin" )
-set_target_properties(openwxr PROPERTIES LIBRARY_OUTPUT_DIRECTORY
-    "${CMAKE_SOURCE_DIR}/bin" )
-set_target_properties(openwxr PROPERTIES OUTPUT_NAME "${OUTPUT_FILENAME}")
+set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES PREFIX "")
+set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES SUFFIX "")
+set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY
+	"${CMAKE_SOURCE_DIR}/Deploy/${CMAKE_PROJECT_NAME}/${PLUGIN_BIN_OUTDIR}/$<0:>" )
+set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES LIBRARY_OUTPUT_DIRECTORY
+	"${CMAKE_SOURCE_DIR}/Deploy/${CMAKE_PROJECT_NAME}/${PLUGIN_BIN_OUTDIR}/$<0:>" )
+set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES OUTPUT_NAME "${CMAKE_PROJECT_NAME}.xpl")
