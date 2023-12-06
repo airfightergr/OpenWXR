@@ -86,6 +86,17 @@ jobs:
       # Build your program with the given configuration. Note that --config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
       run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
 
+    - name: Build shaders
+      if: matrix.subsystem == 'Windows'
+      run:   |
+              sudo apt-get install spirv-cross
+              cd ${{github.workspace}}/data
+              ./glsl_cleanup.sh
+              cp -r ${{github.workspace}}/data ${{github.workspace}}/Deploy/openwxr
+              cp -r ${{github.workspace}}/fonts ${{github.workspace}}/Deploy/openwxr 
+
+      shell: bash   
+
     - uses: actions/upload-artifact@v3
       with:
         name: openwxr
