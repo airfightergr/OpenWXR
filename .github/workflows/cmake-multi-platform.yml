@@ -55,6 +55,7 @@ jobs:
                   sudo apt-get install --fix-missing libgl1-mesa-dev libglfw3-dev libglu1-mesa-dev
                   if [matrix.system == "Windows"]; then
                     sudo apt-get install mingw-w64
+                  fi
              fi
       shell: bash        
       
