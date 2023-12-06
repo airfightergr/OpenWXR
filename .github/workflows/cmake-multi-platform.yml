@@ -88,10 +88,10 @@ jobs:
 
     - name: Build shaders
       if: matrix.target_system == 'Linux'
+      working-directory: ./data
       shell: bash
       run:   |
               sudo apt-get install spirv-cross
-              cd ${{github.workspace}}/data
               sudo chmod +x glsl_cleanup.sh
               ./glsl_cleanup.sh
               cp -r ${{github.workspace}}/data ${{github.workspace}}/Deploy/openwxr
