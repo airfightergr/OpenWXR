@@ -20,28 +20,28 @@ jobs:
       #
       # To add more build types (Release, Debug, RelWithDebInfo, etc.) customize the build_type list. 
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-20.04, macos-12]
         build_type: [Debug]
         system: [Linux, Windows, Darwin]
         include:
-          - os: ubuntu-latest
+          - os: ubuntu-20.04
             system : Linux
             c_compiler: gcc
             cpp_compiler: g++
-          - os: ubuntu-latest
+          - os: ubuntu-20.04
             system : Windows
             c_compiler: x86_64-w64-mingw32-gcc
             cpp_compiler: x86_64-w64-mingw32-g++
-          - os: macos-latest
+          - os: macos-12
             system : Darwin
             c_compiler: clang
             cpp_compiler: clang++
         exclude:
           - os: ubuntu-latest
             system : Darwin
-          - os: macos-latest
+          - os: macos-12
             system : Linux
-          - os: macos-latest
+          - os: macos-12
             system : Windows
 
     steps:
@@ -52,7 +52,7 @@ jobs:
       run:   |
              if [ "$RUNNER_OS" == "Linux" ]; then
                   sudo apt-get update
-                  sudo apt-get install --fix-missing libgl1-mesa-dev
+                  sudo apt-get install --fix-missing libgl1-mesa-dev binutils-mingw-w64-x86-64 gcc-mingw-w64-base
              fi
       shell: bash        
       

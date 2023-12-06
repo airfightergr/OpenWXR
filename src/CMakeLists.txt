@@ -242,7 +242,7 @@ else()
 	FIND_LIBRARY(GLEW_LIBRARY GLEWmx)
 	FIND_LIBRARY(LZMA_LIBRARY lzma)
 	FIND_LIBRARY(CURL_LIBRARY curl)
-	FIND_LIBRARY(PTHREAD_NONSHARED pthread_nonshared)
+	FIND_LIBRARY(PTHREAD_LIBRARY pthread)
 	FIND_LIBRARY(LIBC_NONSHARED c_nonshared)
 	target_link_libraries(openwxr
 		${LIBACFUTILS_LIBRARY}
@@ -260,13 +260,13 @@ else()
 		${CURL_LIBRARY}
 		${SSL_LIBRARY}
 		${CRYPTO_LIBRARY}
-		${PTHREAD_NONSHARED}
+		${PTHREAD_LIBRARY}
 		${LIBC_NONSHARED}
 		)
 endif()
 
 if(APPLE)
-	set_target_properties(openwxr PROPERTIES LINK_FLAGS "-static-libstdc++")	
+	#set_target_properties(openwxr PROPERTIES LINK_FLAGS "-static-libstdc++")	
 else()
 	set_target_properties(openwxr PROPERTIES LINK_FLAGS "-static-libgcc -static-libstdc++ -Wl,--exclude-libs,ALL")
 	if(UNIX AND NOT APPLE)
