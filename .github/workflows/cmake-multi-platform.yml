@@ -88,6 +88,7 @@ jobs:
 
     - name: Build shaders
       if: matrix.subsystem == 'Linux'
+      shell: bash
       run:   |
               sudo apt-get install spirv-cross
               cd ${{github.workspace}}/data
@@ -95,8 +96,6 @@ jobs:
               ./glsl_cleanup.sh
               cp -r ${{github.workspace}}/data ${{github.workspace}}/Deploy/openwxr
               cp -r ${{github.workspace}}/fonts ${{github.workspace}}/Deploy/openwxr 
-
-      shell: bash   
 
     - uses: actions/upload-artifact@v3
       with:
