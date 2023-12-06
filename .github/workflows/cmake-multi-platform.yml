@@ -20,15 +20,15 @@ jobs:
       #
       # To add more build types (Release, Debug, RelWithDebInfo, etc.) customize the build_type list. 
       matrix:
-        os: [ubuntu-20.04, macos-12]
+        os: [ubuntu-22.04, macos-12]
         build_type: [Debug]
         subsystem: [Linux, Windows, Darwin]
         include:
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             subsystem : Linux
             c_compiler: gcc
             cpp_compiler: g++
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             subsystem : Windows
             c_compiler: x86_64-w64-mingw32-gcc
             cpp_compiler: x86_64-w64-mingw32-g++
@@ -37,7 +37,7 @@ jobs:
             c_compiler: clang
             cpp_compiler: clang++
         exclude:
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             subsystem : Darwin
           - os: macos-12
             subsystem : Linux
