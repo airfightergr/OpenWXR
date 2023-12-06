@@ -96,8 +96,8 @@ jobs:
       run:   |
               sudo apt-get install spirv-cross
               sudo chmod +x glsl_cleanup.sh
-              glsl_cleanup.sh
-              cp -r ../data ../Deploy/openwxr
+              make
+              cp -r ../data/bin ../Deploy/openwxr/data/
               cp -r ../fonts ../Deploy/openwxr 
 
     - uses: actions/upload-artifact@v3
