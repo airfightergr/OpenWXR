@@ -87,10 +87,11 @@ jobs:
       run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
 
     - name: Build shaders
-      if: matrix.subsystem == 'Windows'
+      if: matrix.subsystem == 'Linux'
       run:   |
               sudo apt-get install spirv-cross
               cd ${{github.workspace}}/data
+              sudo chmod +x glsl_cleanup.sh
               ./glsl_cleanup.sh
               cp -r ${{github.workspace}}/data ${{github.workspace}}/Deploy/openwxr
               cp -r ${{github.workspace}}/fonts ${{github.workspace}}/Deploy/openwxr 
