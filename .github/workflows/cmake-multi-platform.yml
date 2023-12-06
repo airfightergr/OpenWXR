@@ -41,7 +41,7 @@ jobs:
             system : Darwin
           - os: macos-latest
             system : Linux
-            - os: macos-latest
+          - os: macos-latest
             system : Windows
 
     steps:
