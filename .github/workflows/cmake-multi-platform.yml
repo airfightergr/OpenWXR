@@ -91,11 +91,10 @@ jobs:
       shell: bash
       run:   |
               sudo apt-get install spirv-cross
-              cd data
-              sudo chmod +x glsl_cleanup.sh
-              ./glsl_cleanup.sh
-              cp -r ../data ../Deploy/openwxr
-              cp -r ../fonts ../Deploy/openwxr 
+              sudo chmod +x ${{ github.workspace }}/data/glsl_cleanup.sh
+              .${{ github.workspace }}/data/glsl_cleanup.sh
+              cp -r ${{github.workspace}}/data ${{github.workspace}}/Deploy/openwxr
+              cp -r ${{github.workspace}}/fonts ${{github.workspace}}/Deploy/openwxr 
 
     - uses: actions/upload-artifact@v3
       with:
