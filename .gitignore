@@ -6,6 +6,7 @@ bin
 .DS_Store
 .vscode
 build
+Deploy
 OpenWXR.code-workspace
 qmake/object_script.win.xpl.Debug
 qmake/object_script.win.xpl.Release
