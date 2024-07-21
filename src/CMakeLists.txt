@@ -18,7 +18,7 @@ cmake_minimum_required(VERSION 3.12)
 if(APPLE)
 	set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "" FORCE)
 endif(APPLE)
-project(openwxr)
+project(OpenWXR)
 
 if(NOT CMAKE_BUILD_TYPE)
 	SET(CMAKE_BUILD_TYPE "Debug")
@@ -47,7 +47,7 @@ SET(ALL_SRC ${SRC} ${HDR})
 LIST(SORT ALL_SRC)
 
 
-add_library(openwxr SHARED ${ALL_SRC})
+add_library(OpenWXR SHARED ${ALL_SRC})
 
 if(WIN32)
 	set(PLAT_SHORT "win64")
@@ -98,7 +98,7 @@ endif()
 
 add_definitions(-DXPLM200=1 -DXPLM210=1 -DXPLM300=1 -DXPLM301=1 -DXPLM303=1 -DXPLM400=1 -DGLEW_BUILD=GLEW_STATIC)
 
-include_directories(openwxr PUBLIC
+include_directories(OpenWXR PUBLIC
     "${LIBACFUTILS}/include"
 	"${LIBACFUTILS}/include/cglm"
 	"${XPSDK}/CHeaders/XPLM"
@@ -108,9 +108,9 @@ include_directories(openwxr PUBLIC
     "${OPENGPWS}/api")
 
 if(WIN32)
-	include_directories(openwxr PUBLIC "${LIBACFUTILS}/mingw64/include")
+	include_directories(OpenWXR PUBLIC "${LIBACFUTILS}/mingw64/include")
 else()
-	include_directories(openwxr PUBLIC "${LIBACFUTILS}/${PLAT_SHORT}/include")
+	include_directories(OpenWXR PUBLIC "${LIBACFUTILS}/${PLAT_SHORT}/include")
 endif()
 
 #compiler flags
@@ -171,7 +171,7 @@ if(APPLE)
 	FIND_LIBRARY(ZLIB_LIBRARY z)
 	FIND_LIBRARY(COREFOUNDATION_LIBRARY CoreFoundation)
 	FIND_LIBRARY(SYSTEMCONFIGURATION_LIBRARY SystemConfiguration)
-	target_link_libraries(openwxr
+	target_link_libraries(OpenWXR
 	    ${LIBACFUTILS_LIBRARY}
 	    ${OPENAL_LIBRARY}
 		${GLEW_LIBRARY}
@@ -213,7 +213,7 @@ elseif(WIN32)
 	FIND_LIBRARY(GLEW_LIBRARY glew32mx)
 	FIND_LIBRARY(LZMA_LIBRARY lzma)
 	FIND_LIBRARY(CURL_LIBRARY curl)
-	target_link_libraries(openwxr
+	target_link_libraries(OpenWXR
 		${LIBACFUTILS_LIBRARY}
 		${XPLM_LIBRARY}
 		${OPUSFILE_LIBRARY}
@@ -255,7 +255,7 @@ else()
 	FIND_LIBRARY(CURL_LIBRARY curl)
 	FIND_LIBRARY(PTHREAD_LIBRARY pthread)
 	FIND_LIBRARY(LIBC_NONSHARED c_nonshared)
-	target_link_libraries(openwxr
+	target_link_libraries(OpenWXR
 		${LIBACFUTILS_LIBRARY}
 		${OPENGL_LIBRARY}
 		${OPUSFILE_LIBRARY}
@@ -277,11 +277,11 @@ else()
 endif()
 
 if(APPLE)
-	#set_target_properties(openwxr PROPERTIES LINK_FLAGS "-static-libstdc++")	
+	#set_target_properties(OpenWXR PROPERTIES LINK_FLAGS "-static-libstdc++")	
 else()
-	set_target_properties(openwxr PROPERTIES LINK_FLAGS "-static -static-libgcc -static-libstdc++ -Wl,--exclude-libs,ALL")
+	set_target_properties(OpenWXR PROPERTIES LINK_FLAGS "-static -static-libgcc -static-libstdc++ -Wl,--exclude-libs,ALL")
 	if(UNIX AND NOT APPLE)
-		set_target_properties(openwxr PROPERTIES LINK_FLAGS "-nodefaultlibs")
+		set_target_properties(OpenWXR PROPERTIES LINK_FLAGS "-nodefaultlibs")
 	endif()
 endif()
 
